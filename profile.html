@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile · Feedback System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa; min-height: 100vh; color: #1a1a1a; line-height: 1.5;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.dark-theme { background: #0f0f0f; color: #e5e5e5; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .container { animation: fadeIn 0.5s ease-out; }
+        .profile-header { animation: scaleIn 0.4s ease-out; }
+        .filters { animation: scaleIn 0.4s ease-out 0.1s backwards; }
+        .table-container { animation: scaleIn 0.4s ease-out 0.2s backwards; }
+
+        body.dark-theme .header { background: #1a1a1a; border-bottom-color: #333333; }
+        body.dark-theme .logo { color: #ffffff; }
+        body.dark-theme .nav-links a { color: #999999; }
+        body.dark-theme .nav-links a:hover,
+        body.dark-theme .nav-links a.active { color: #ffffff; }
+        body.dark-theme .btn-outline { border-color: #444444; color: #e5e5e5; }
+        body.dark-theme .btn-outline:hover { border-color: #ffffff; background: #2a2a2a; }
+        body.dark-theme .profile-header,
+        body.dark-theme .filters,
+        body.dark-theme .table-container { background: #1a1a1a; border-color: #333333; }
+        body.dark-theme .profile-info h2,
+        body.dark-theme .section-title { color: #ffffff; }
+        body.dark-theme .profile-info p { color: #999999; }
+        body.dark-theme .stat-value { color: #ffffff; }
+        body.dark-theme .stat-label { color: #999999; }
+        body.dark-theme .profile-avatar { background: #ffffff; color: #0f0f0f; }
+        body.dark-theme .new-feedback-btn { background: #ffffff; color: #0f0f0f; }
+        body.dark-theme .new-feedback-btn:hover { background: #e5e5e5; }
+        body.dark-theme .filter-group label { color: #999999; }
+        body.dark-theme select { background: #0f0f0f; border-color: #444444; color: #e5e5e5; }
+        body.dark-theme th { background: #0f0f0f; color: #999999; border-bottom-color: #333333; }
+        body.dark-theme td { border-bottom-color: #2a2a2a; color: #e5e5e5; }
+        body.dark-theme tbody tr:hover { background: rgba(255,255,255,0.03); }
+        body.dark-theme .status-new { background: #1e3a5f; color: #7ab7ef; }
+        body.dark-theme .status-in_progress { background: #4a3520; color: #fbbf24; }
+        body.dark-theme .status-completed { background: #1a3a2a; color: #6ee7b7; }
+        body.dark-theme .pagination button { background: #1a1a1a; border-color: #444444; color: #e5e5e5; }
+        body.dark-theme .pagination button:hover:not(:disabled) { border-color: #ffffff; background: #2a2a2a; }
+        body.dark-theme .loading,
+        body.dark-theme .empty-state { color: #999999; }
+        body.dark-theme .empty-state a { color: #ffffff; }
+        body.dark-theme .user-name { color: #999999; }
+
+        .theme-toggle {
+            background: none; border: 1px solid #d4d4d4; border-radius: 24px; padding: 6px 14px;
+            cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center;
+            gap: 8px; transition: all 0.3s; margin-right: 8px; color: #1a1a1a;
+        }
+        body.dark-theme .theme-toggle { border-color: #444444; color: #e5e5e5; }
+        .theme-toggle:hover { border-color: #1a1a1a; background: #f5f5f5; transform: scale(1.02); }
+        body.dark-theme .theme-toggle:hover { border-color: #ffffff; background: #2a2a2a; }
+
+        .theme-icon { width: 18px; height: 18px; display: inline-block; transition: transform 0.3s; }
+        .theme-icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        body:not(.dark-theme) .theme-icon svg path { stroke: #1a1a1a; fill: #1a1a1a; }
+        body.dark-theme .theme-icon svg circle,
+        body.dark-theme .theme-icon svg line { stroke: #ffffff; }
+        .theme-toggle:hover .theme-icon { transform: rotate(10deg); }
+
+        .header {
+            background: #ffffff; padding: 20px 40px; border-bottom: 1px solid #e5e5e5;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: background 0.3s, border-color 0.3s; min-height: 73px;
+        }
+        .logo {
+            font-size: 20px; font-weight: 500; letter-spacing: -0.5px; color: #1a1a1a;
+            text-decoration: none; transition: transform 0.3s, color 0.3s; display: inline-block;
+        }
+        .logo:hover { transform: scale(1.02); }
+
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a {
+            text-decoration: none; color: #666666; font-size: 14px; font-weight: 400;
+            transition: all 0.25s; position: relative; white-space: nowrap;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+            background: currentColor; transition: width 0.3s;
+        }
+        .nav-links a:hover::after,
+        .nav-links a.active::after { width: 100%; }
+        .nav-links a:hover { color: #1a1a1a; }
+        .nav-links a.active { color: #1a1a1a; font-weight: 500; }
+
+        .user-name {
+            color: #666666; font-size: 14px; white-space: nowrap;
+            max-width: 150px; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .btn {
+            padding: 8px 20px; border-radius: 6px; text-decoration: none; font-size: 14px;
+            font-weight: 400; transition: all 0.25s; border: none; cursor: pointer;
+            background: none; white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-outline { border: 1px solid #d4d4d4; color: #1a1a1a; }
+        .btn-outline:hover { border-color: #1a1a1a; background: #f5f5f5; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+        .profile-header {
+            background: #ffffff; padding: 32px; border-radius: 12px; border: 1px solid #e5e5e5;
+            margin-bottom: 32px; display: flex; align-items: center; gap: 24px;
+        }
+        .profile-avatar {
+            width: 80px; height: 80px; background: #1a1a1a; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            font-size: 32px; font-weight: 500; transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .profile-avatar:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .profile-info h2 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+        .profile-info p { color: #666666; font-size: 14px; }
+        .profile-stats { margin-left: auto; display: flex; gap: 32px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 32px; font-weight: 500; }
+        .stat-label { font-size: 13px; color: #666666; }
+
+        .section-title { font-size: 20px; font-weight: 500; margin-bottom: 20px; }
+        .filters {
+            background: #ffffff; padding: 20px 24px; border-radius: 12px; border: 1px solid #e5e5e5;
+            margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 13px; font-weight: 500; color: #666666; }
+        .filter-group select {
+            padding: 10px 16px; border: 1px solid #d4d4d4; border-radius: 8px;
+            font-size: 14px; background: #ffffff; min-width: 180px; cursor: pointer;
+        }
+        .filter-actions { display: flex; gap: 8px; margin-left: auto; }
+
+        .table-container {
+            background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e5e5e5;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left; padding: 14px 16px; background: #fafafa; color: #666666;
+            font-weight: 500; font-size: 13px; border-bottom: 1px solid #e5e5e5;
+        }
+        td { padding: 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        tbody tr { transition: background 0.2s; animation: slideIn 0.3s backwards; }
+        tbody tr:nth-child(1) { animation-delay: 0.05s; }
+        tbody tr:nth-child(2) { animation-delay: 0.1s; }
+        tbody tr:nth-child(3) { animation-delay: 0.15s; }
+        tbody tr:nth-child(4) { animation-delay: 0.2s; }
+        tbody tr:nth-child(5) { animation-delay: 0.25s; }
+        tbody tr:nth-child(6) { animation-delay: 0.3s; }
+        tbody tr:nth-child(7) { animation-delay: 0.35s; }
+        tbody tr:nth-child(8) { animation-delay: 0.4s; }
+        tbody tr:nth-child(9) { animation-delay: 0.45s; }
+        tbody tr:nth-child(10) { animation-delay: 0.5s; }
+        tbody tr:hover { background: rgba(0,0,0,0.02); }
+
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-new { background: #e0f2fe; color: #0369a1; }
+        .status-in_progress { background: #fef3c7; color: #b45309; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .category-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; }
+        .pagination button {
+            padding: 8px 16px; border: 1px solid #d4d4d4; background: #fff;
+            border-radius: 6px; font-size: 14px; cursor: pointer;
+        }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination .page-info { color: #666666; font-size: 14px; margin: 0 16px; }
+        .loading, .empty-state { text-align: center; padding: 40px; color: #666666; }
+
+        .new-feedback-btn {
+            background: #1a1a1a; color: #ffffff; padding: 12px 24px; border-radius: 8px;
+            text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block;
+            margin-bottom: 24px; transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+        }
+        .new-feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .empty-state a { color: #1a1a1a; text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .header { padding: 16px 20px; }
+            .nav-links { flex-wrap: wrap; gap: 16px; }
+            .container { padding: 24px 16px; }
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-stats { margin-left: 0; justify-content: center; }
+            .filters { flex-direction: column; align-items: stretch; }
+            .filter-group select { width: 100%; }
+            .filter-actions { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="logo">Feedback System</a>
+        <div class="nav-links" id="navLinks"></div>
+    </div>
+
+    <div class="container">
+        <div class="profile-header">
+            <div class="profile-avatar" id="userInitial"></div>
+            <div class="profile-info">
+                <h2 id="profileName"></h2>
+                <p id="profileEmail"></p>
+                <p id="profileRole"></p>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item"><div class="stat-value" id="totalMyFeedbacks">-</div><div class="stat-label">Total</div></div>
+                <div class="stat-item"><div class="stat-value" id="completedMyFeedbacks">-</div><div class="stat-label">Completed</div></div>
+                <div class="stat-item"><div class="stat-value" id="inProgressMyFeedbacks">-</div><div class="stat-label">In progress</div></div>
+            </div>
+        </div>
+
+        <a href="index.html" class="new-feedback-btn">+ New feedback</a>
+        <h2 class="section-title">My feedback history</h2>
+
+        <div class="filters">
+            <div class="filter-group"><label>Category</label><select id="filterCategory"><option value="">All</option><option value="1">Positive</option><option value="2">Suggestion</option><option value="3">Issue</option></select></div>
+            <div class="filter-group"><label>Status</label><select id="filterStatus"><option value="">All</option><option value="new">New</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select></div>
+            <div class="filter-group"><label>Sort</label><select id="filterSort"><option value="desc">Newest</option><option value="asc">Oldest</option></select></div>
+            <div class="filter-actions"><button class="btn btn-outline" onclick="resetFilters()">Reset</button></div>
+        </div>
+
+        <div class="table-container">
+            <div id="loadingState" class="loading">Loading...</div>
+            <table id="feedbacksTable" style="display:none;">
+                <thead><tr><th>ID</th><th>Category</th><th>Message</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody id="feedbacksBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display:none;">No feedback yet.<br><a href="index.html">Create first</a></div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display:none;">
+            <button onclick="prevPage()" id="prevBtn">←</button>
+            <span class="page-info" id="pageInfo">1 / 1</span>
+            <button onclick="nextPage()" id="nextBtn">→</button>
+        </div>
+    </div>
+
+    <script>
+        function initTheme() { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme'); }
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+            renderNavigation();
+        }
+        initTheme();
+
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token) window.location.href = 'login.html';
+
+        const sunIcon = `<svg class="theme-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+        const moonIcon = `<svg class="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+        function renderNavigation() {
+            const nav = document.getElementById('navLinks');
+            const isDark = document.body.classList.contains('dark-theme');
+            nav.innerHTML = `
+                <button class="theme-toggle" onclick="toggleTheme()"><span class="theme-icon">${isDark ? sunIcon : moonIcon}</span>${isDark ? 'Light' : 'Dark'}</button>
+                <a href="index.html">Home</a>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="feedbacks.html">All Feedback</a>
+                <a href="profile.html" class="active">My Profile</a>
+                <span class="user-name">${user.name || user.email}</span>
+                <button class="btn btn-outline" onclick="logout()">Sign out</button>
+            `;
+        }
+        renderNavigation();
+
+        document.getElementById('userInitial').textContent = (user.name || user.email).charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent = user.name || 'User';
+        document.getElementById('profileEmail').textContent = user.email || '';
+        document.getElementById('profileRole').textContent = user.role === 'admin' ? 'Administrator' : 'Operator';
+
+        let page = 1, pages = 1, cat = '', stat = '', sort = 'desc';
+
+        async function load() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('feedbacksTable').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('pagination').style.display = 'none';
+
+            try {
+                // ВАЖНО: добавлен параметр my_only=true
+                let url = `api/feedbacks/list.php?page=${page}&size=10&sort=${sort}&my_only=true`;
+                if (cat) url += `&category_id=${cat}`;
+                if (stat) url += `&status=${stat}`;
+                
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                // Статистика тоже только по своим отзывам
+                const aRes = await fetch('api/analytics/index.php?my_only=true', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (aRes.ok) {
+                    const a = await aRes.json();
+                    document.getElementById('totalMyFeedbacks').textContent = a.total_feedbacks || 0;
+                    document.getElementById('completedMyFeedbacks').textContent = a.by_status?.completed || 0;
+                    document.getElementById('inProgressMyFeedbacks').textContent = a.by_status?.in_progress || 0;
+                } else {
+                    // Если аналитика не загрузилась, считаем из данных списка
+                    document.getElementById('totalMyFeedbacks').textContent = data.total || 0;
+                }
+
+                pages = data.pages || 1;
+                const tbody = document.getElementById('feedbacksBody');
+                tbody.innerHTML = '';
+                
+                if (data.items?.length) {
+                    data.items.forEach(f => {
+                        const row = tbody.insertRow();
+                        const catColor = f.category_color || '#999';
+                        const statusClass = f.status === 'in_progress' ? 'status-in_progress' : f.status === 'completed' ? 'status-completed' : 'status-new';
+                        const statusText = f.status === 'in_progress' ? 'In progress' : f.status === 'completed' ? 'Completed' : 'New';
+                        const date = new Date(f.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+                        row.innerHTML = `<td>#${f.id}</td><td><span class="category-indicator" style="background:${catColor};"></span>${f.category_name||'Unknown'}</td><td>${f.message.substring(0,50)}${f.message.length>50?'...':''}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td><td>${date}</td>`;
+                    });
+                    document.getElementById('feedbacksTable').style.display = 'table';
+                    document.getElementById('pagination').style.display = 'flex';
+                } else {
+                    document.getElementById('emptyState').style.display = 'block';
+                }
+                updatePagination();
+            } catch (err) {
+                console.error('Load error:', err);
+                document.getElementById('emptyState').innerHTML = 'Error loading data. Please refresh.';
+                document.getElementById('emptyState').style.display = 'block';
+            } finally {
+                document.getElementById('loadingState').style.display = 'none';
+            }
+        }
+
+        function updatePagination() {
+            document.getElementById('prevBtn').disabled = page <= 1;
+            document.getElementById('nextBtn').disabled = page >= pages;
+            document.getElementById('pageInfo').textContent = `${page} / ${pages}`;
+        }
+        
+        function prevPage() { if (page > 1) { page--; load(); } }
+        function nextPage() { if (page < pages) { page++; load(); } }
+        
+        function resetFilters() {
+            document.getElementById('filterCategory').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterSort').value = 'desc';
+            cat = ''; stat = ''; sort = 'desc'; page = 1; load();
+        }
+
+        document.getElementById('filterCategory').addEventListener('change', function() { cat = this.value; page = 1; load(); });
+        document.getElementById('filterStatus').addEventListener('change', function() { stat = this.value; page = 1; load(); });
+        document.getElementById('filterSort').addEventListener('change', function() { sort = this.value; page = 1; load(); });
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        load();
+    </script>
+</body>
+</html>
